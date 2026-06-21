@@ -81,6 +81,17 @@ function decryptFile(key, iv, filePath, newPath) {
     });
 }
 
+const file = JSON.parse(fs.readFileSync(path.join(__dirname, 'keys.json')));
+file["beans"] = "toess";
+
+fs.writeFileSync(path.join(__dirname, 'keys.json'), JSON.stringify(file));
+
+const key = Buffer.from(process.env.KEY, 'hex');
+
+encryptFile(key, iv, path.join(__dirname, 'keys.json'), path.join(__dirname, 'keys.dat'));
+
+/*
+
 connection.connect((err) => {
     if (err) return console.error(err.message);
     console.log('Connected to the MySQL server.');
@@ -149,4 +160,4 @@ connection.connect((err) => {
     app.listen(PORT, () => {
         console.log("Server running on port " + PORT);
     });
-});
+}); */
