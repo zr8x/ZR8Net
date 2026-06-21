@@ -1,0 +1,25 @@
+{
+  "name": "zr8net",
+  "version": "1.0.0",
+  "description": "A storage hub for my projects",
+  "homepage": "https://github.com/zr8x/ZR8Net#readme",
+  "bugs": {
+    "url": "https://github.com/zr8x/ZR8Net/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zr8x/ZR8Net.git"
+  },
+  "license": "ISC",
+  "author": "zr8x",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "mongodb": "^7.3.0",
+    "mysql": "^2.18.1"
+  }
+}
