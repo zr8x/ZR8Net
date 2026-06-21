@@ -94,6 +94,9 @@ async function main() {
         "sdfo98jh": "cuh",
         "beans": "dih"
     };
+
+    const key = Buffer.from(process.env.KEY, 'hex');
+
     fs.writeFileSync(path.join(__dirname, 'keys.json'), JSON.stringify(data));
 
     await encryptFile(key, iv, 'keys.json', 'keys.dat');
