@@ -55,49 +55,56 @@ async function extractTarGz(archivePath, outputDir) {
     }
 }
 
-function encryptFile(key, iv, filePath, newPath) {
-    const cypher = crypto.createCipheriv('aes-256-cbc', key, iv);
-
-    const input = fs.createReadStream(path.join(__dirname, filePath));
-    const output = fs.createWriteStream(path.join(__dirname, newPath));
-
-    input.pipe(cypher).pipe(output);
-
-    output.on('finish', () => {
-        console.log('Encryption complete.');
-    });
-}
-
 function decryptFile(key, iv, filePath, newPath) {
-    const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+    return new Promise((resolve, reject) => {
+        const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+        const input = fs.createReadStream(path.join(__dirname, filePath));
+        const output = fs.createWriteStream(path.join(__dirname, newPath));
 
-    const input = fs.createReadStream(path.join(__dirname, filePath));
-    const output = fs.createWriteStream(path.join(__dirname, newPath));
+        input.pipe(decipher).pipe(output);
 
-    input.pipe(decipher).pipe(output);
-
-    output.on('finish', () => {
-        console.log('Decryption complete.');
+        output.on('finish', () => {
+            console.log('Decryption complete.');
+            resolve();
+        });
+        output.on('error', reject);
+        input.on('error', reject);
     });
 }
 
-const key = Buffer.from(process.env.KEY, 'hex');
+function encryptFile(key, iv, filePath, newPath) {
+    return new Promise((resolve, reject) => {
+        const cypher = crypto.createCipheriv('aes-256-cbc', key, iv);
+        const input = fs.createReadStream(path.join(__dirname, filePath));
+        const output = fs.createWriteStream(path.join(__dirname, newPath));
 
-decryptFile(key, iv, 'keys.dat', 'keys.json');
-const file = JSON.parse(fs.readFileSync(path.join(__dirname, 'keys.json')));
+        input.pipe(cypher).pipe(output);
 
-file["124098u"] = "30hsdlfkh2983h";
-fs.writeFileSync(path.join(__dirname, 'keys.json'), JSON.stringify(file));
+        output.on('finish', () => {
+            console.log('Encryption complete.');
+            resolve();
+        });
+        output.on('error', reject);
+        input.on('error', reject);
+    });
+}
 
-encryptFile(key, iv, 'keys.json', 'keys.dat');
+async function main() {
+    const key = Buffer.from(process.env.KEY, 'hex');
 
-fs.unlinkSync(path.join(__dirname, 'keys.json'), (err) => {
-    if (err) {
-        console.error(`Error deleting file: ${err.message}`);
-        return;
-    }
+    await decryptFile(key, iv, 'keys.dat', 'keys.json');
+
+    const file = JSON.parse(fs.readFileSync(path.join(__dirname, 'keys.json')));
+    file["124098u"] = "30hsdlfkh2983h";
+    fs.writeFileSync(path.join(__dirname, 'keys.json'), JSON.stringify(file));
+
+    await encryptFile(key, iv, 'keys.json', 'keys.dat');
+
+    fs.unlinkSync(path.join(__dirname, 'keys.json'));
     console.log("Successfully deleted decrypted file.");
-});
+}
+
+main().catch(console.error);
 
 /*
 
