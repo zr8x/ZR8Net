@@ -20,7 +20,10 @@
   "dependencies": {
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "express-fileupload": "^1.5.2",
+    "fs": "^0.0.1-security",
     "mongodb": "^7.3.0",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "tar": "^7.5.16"
   }
 }
