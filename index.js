@@ -88,7 +88,7 @@ fs.writeFileSync(path.join(__dirname, 'keys.json'), JSON.stringify(file));
 
 const key = Buffer.from(process.env.KEY, 'hex');
 
-encryptFile(key, iv, path.join(__dirname, 'keys.json'), path.join(__dirname, 'keys.dat'));
+encryptFile(key, iv, 'keys.json', 'keys.dat');
 
 /*
 
