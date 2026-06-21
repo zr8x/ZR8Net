@@ -58,12 +58,12 @@ async function extractTarGz(archivePath, outputDir) {
 function encryptFile(key, iv, filePath, newPath) {
     const cypher = crypto.createCipheriv('aes-256-cbc', key, iv);
 
-    const in2 = fs.createReadStream(path.join(__dirname, filePath));
-    const out2 = fs.createWriteStream(path.join(__dirname, newPath));
+    const input = fs.createReadStream(path.join(__dirname, filePath));
+    const output = fs.createWriteStream(path.join(__dirname, newPath));
 
-    input.pipe(cypher).pipe(out2);
+    input.pipe(cypher).pipe(output);
 
-    out2.on('finish', () => {
+    output.on('finish', () => {
         console.log('Encryption complete.');
     });
 }
