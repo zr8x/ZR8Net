@@ -81,7 +81,7 @@ function decryptFile(key, iv, filePath, newPath) {
     });
 }
 
-const key = process.env.KEY;
+const key = Buffer.from(process.env.KEY, 'hex');
 
 decryptFile(key, iv, 'keys.dat', 'keys.json');
 const file = JSON.parse(fs.readFileSync(path.join(__dirname, 'keys.json')));
