@@ -24,7 +24,8 @@ let connection = mysql.createConnection({
 
 const auths = [];
 
-let iv = crypto.getRandomValues(new Uint8Array(16));
+const iv = Buffer.from(process.env.IV, 'hex');
+//let iv = crypto.getRandomValues(new Uint8Array(16));
 
 async function extractTarGz(archivePath, outputDir) {
     try {
