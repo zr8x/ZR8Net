@@ -92,8 +92,7 @@ function encryptFile(key, iv, filePath, newPath) {
 
 async function regen() {
     const data = {
-        "sdfo98jh": "cuh",
-        "beans": "dih"
+        
     };
 
     const key = Buffer.from(process.env.KEY, 'hex');
@@ -102,12 +101,6 @@ async function regen() {
 
     await encryptFile(key, iv, 'keys.json', 'keys.dat');
     fs.unlinkSync(path.join(__dirname, 'keys.json'));
-}
-
-async function main() {
-    const key = Buffer.from(process.env.KEY, 'hex');
-
-    await decryptFile(key, iv, 'keys.dat', 'keys.json');
 }
 
 regen().catch(console.error);
