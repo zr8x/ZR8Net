@@ -81,14 +81,16 @@ function decryptFile(key, iv, filePath, newPath) {
     });
 }
 
-const file = JSON.parse(fs.readFileSync(path.join(__dirname, 'keys.json')));
-file["0293570"] = "sl5dkff09h3jot";
+const key = process.env.KEY;
 
+decryptFile(key, iv, 'keys.dat', 'keys.json');
+const file = JSON.parse(fs.readFileSync(path.join(__dirname, 'keys.json')));
+
+file["124098u"] = "30hsdlfkh2983h";
 fs.writeFileSync(path.join(__dirname, 'keys.json'), JSON.stringify(file));
 
-const key = Buffer.from(process.env.KEY, 'hex');
-
 encryptFile(key, iv, 'keys.json', 'keys.dat');
+
 fs.unlinkSync(path.join(__dirname, 'keys.json'), (err) => {
     if (err) {
         console.error(`Error deleting file: ${err.message}`);
