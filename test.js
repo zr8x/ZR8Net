@@ -110,4 +110,4 @@ async function main() {
     await decryptFile(key, iv, 'keys.dat', 'keys.json');
 }
 
-main().catch(console.error);
+regen().catch(console.error);
