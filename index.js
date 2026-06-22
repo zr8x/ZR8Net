@@ -12,6 +12,8 @@ const fs = require('fs');
 const tar = require('tar');
 const path = require('path');
 
+const jwt = require('jsonwebtoken');
+
 const repositories = path.join(__dirname, '/repositories/');
 
 let connection = mysql.createConnection({
@@ -24,8 +26,26 @@ let connection = mysql.createConnection({
 
 const auths = [];
 
-const iv = Buffer.from(process.env.IV, 'hex');
-//let iv = crypto.getRandomValues(new Uint8Array(16));
+let iv = crypto.getRandomValues(new Uint8Array(16));
+
+const ecdh = crypto.createECDH('secp256k1');
+const publicKey = crypto.generateKeys();
+
+function checkAuthHeader(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Missing or malformed token' });
+    }
+
+    const token = authHeader.slice(7);
+
+    try {
+        req.user = jwt.verify(token, process.env.JWT_SECRET);
+        next();
+    } catch (err) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+}
 
 async function extractTarGz(archivePath, outputDir) {
     try {
@@ -90,24 +110,8 @@ function encryptFile(key, iv, filePath, newPath) {
     });
 }
 
-async function main() {
-    const key = Buffer.from(process.env.KEY, 'hex');
-
-    await decryptFile(key, iv, 'keys.dat', 'keys.json');
-
-    const file = JSON.parse(fs.readFileSync(path.join(__dirname, 'keys.json')));
-    file["124098u"] = "30hsdlfkh2983h";
-    fs.writeFileSync(path.join(__dirname, 'keys.json'), JSON.stringify(file));
-
-    await encryptFile(key, iv, 'keys.json', 'keys.dat');
-
-    fs.unlinkSync(path.join(__dirname, 'keys.json'));
-    console.log("Successfully deleted decrypted file.");
-}
-
-main().catch(console.error);
-
-/*
+app.use("/protected/", checkAuthHeader);
+app.use(express.json());
 
 connection.connect((err) => {
     if (err) return console.error(err.message);
@@ -117,23 +121,23 @@ connection.connect((err) => {
         res.send("ZR8Net version 1.0.0");
     });
 
-    app.post("/auth", (req, res) => {
-        const buffer = new ArrayBuffer(32);
-        const view = new DataView(buffer);
-        view.setUint32(0, req.json.number, true);
+    app.post("/protected/auth", (req, res) => {
+        const clientPublicKey = Buffer.from(req.body.number, 'hex');
+        const secret = ecdh.computeSecret(clientPublicKey);
 
-        const n1 = new Uint8Array(buffer);
-        const n2 = crypto.getRandomValues(new Uint8Array(32));
+        const id = crypto.generateKey('aes', 128);
 
-        const id = crypto.generateKey('aes', { length: 512 });
+        res.json({ number: publicKey, id: id.export().toString('hex') });
 
-        res.json({ number: Array.from(n2), id: id.export().toString('hex') });
+        const hkdfKey = crypto.hkdfSync(
+            'sha256',
+            buffer,
+            Buffer.alloc(0),
+            Buffer.from('file-encryption'),
+            32
+        );
 
-        const auth = new Uint8Array(32);
-
-        for (let i = 0; i < 32; i++) {
-            auth[i] = n1[i] ^ n2[i];
-        }
+        const auth = Buffer.from(hkdfKey);
 
         auths.push(auth);
 
@@ -143,16 +147,17 @@ connection.connect((err) => {
 
         const keysDecrypted = JSON.parse(fs.readFileSync(path.join(__dirname, 'keys.json')));
 
-        keysDecrypted[id] = key;
-
-        fs.writeFileSync(path.join(__dirname, 'keys.json'), JSON.stringify(keysDecrypted));
+        keysDecrypted[id] = auth;
 
         iv = crypto.getRandomValues(new Uint8Array(16));
 
+        fs.writeFileSync(path.join(__dirname, 'keys.json'), JSON.stringify(keysDecrypted));
 
+        encryptFile(key, iv, 'keys.json', 'keys.dat');
+        fs.unlinkSync(path.join(__dirname, 'keys.json'));
     });
 
-    app.post("/push", (req, res) => {
+    app.post("/protected/push", (req, res) => {
         const bodyjson = req.json;
 
         if (!req.files) return res.status(400).send('No files were uploaded.');
@@ -177,4 +182,4 @@ connection.connect((err) => {
     app.listen(PORT, () => {
         console.log("Server running on port " + PORT);
     });
-}); */
+});
